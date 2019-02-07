@@ -1,1 +1,30 @@
-hello
+import cv2 as cv
+import numpy as np
+cap = cv.VideoCapture(0)
+cv.namedWindow("Video")
+while True:
+    #capture each frame
+    _, frame = cap.read()
+    #convert from BGR to HSV
+    hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
+
+    #give a range for color in HSV
+    lower_color = np.array([110,50,50])
+    upper_color = np.array([130,255,255])
+
+    #threshold to pull out specific color
+    mask = cv.inRange(hsv,lower_color, upper_color)
+
+    #bitwise and mask and orig img
+    res = cv.bitwise_and(frame, frame, mask = mask)
+
+    cv.imshow('frame', frame)
+    cv.imshow('mask', mask)
+    cv.imshow('res', res)
+    
+    status, img = cap.read()
+    cv.imshow("Video", img)
+    k = cv.waitKey(5) & 0xFF
+    if k == 27:
+        break
+cv.destroyAllWindows()
