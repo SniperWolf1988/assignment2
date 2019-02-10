@@ -3,13 +3,23 @@ import numpy as np
 cap = cv.VideoCapture(0)
 cv.namedWindow("Video")
 
+def nothing(x):
+    pass
+
+cv.createTrackbar('red', 'Video',0,255,nothing)
+cv.createTrackbar('green', 'Video',0,255,nothing)
+cv.createTrackbar('blue', 'Video',0,255,nothing)
+
+
 def on_mouse_click(event, x, y, flags, userParams):
     if event == cv.EVENT_LBUTTONDOWN:
         rgb = frame[y, x, [2,1,0]]
         print ("red = " ,rgb[0], " green = ", rgb[1], " blue = ", rgb[2])
+        cv.setTrackbarPos('red','Video',rgb[0])
+        cv.setTrackbarPos('green','Video',rgb[1])
+        cv.setTrackbarPos('blue','Video',rgb[2])
 
-
-
+        
 while True:
     #capture each frame
     _, frame = cap.read()
@@ -19,6 +29,10 @@ while True:
     # location of mouse click
     cv.setMouseCallback('Video', on_mouse_click)
 
+    # track bar sliders
+    #r = cv.getTrackbarPos('red','Video')
+    #g = cv.getTrackbarPos('green','Video')
+    #b = cv.getTrackbarPos('blue','Video')
     #give a range for color in HSV
     lower_color = np.array([110,50,50])
     upper_color = np.array([130,255,255])
@@ -29,12 +43,12 @@ while True:
     #bitwise and mask and orig img
     res = cv.bitwise_and(frame, frame, mask = mask)
 
-    cv.imshow('mask', mask)
-    cv.imshow('blue', res)
+   # cv.imshow('mask', mask)
+   # cv.imshow('blue', res)
     
     status, img = cap.read()
-    cv.imshow("Video", img)
+    cv.imshow('Video',frame)
     k = cv.waitKey(5) & 0xFF
     if k == 27:
-        break
+        break 
 cv.destroyAllWindows()
