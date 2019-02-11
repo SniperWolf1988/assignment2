@@ -1,0 +1,101 @@
+import cv2 as cv
+import numpy as np
+
+cap = cv.VideoCapture(0)
+_, frame = cap.read()
+cv.namedWindow("Video")
+
+HighH,HighS,HighV,LowH,LowS,LowV = 0,0,0,0,0,0
+
+HSV = cv.cvtColor(frame,cv.COLOR_BGR2HSV)
+
+def highH(HSV):
+    global HighH
+    HighH = cv.getTrackbarPos('maxH', 'Video')
+    cv.setTrackbarPos('maxH', 'Video',HighH)
+    #print(HighH)
+def highS(HSV):
+    global HighS
+    HighS = cv.getTrackbarPos('maxS', 'Video')
+    cv.setTrackbarPos('maxS', 'Video',HighS)
+    #print(HighS)
+def highV(HSV):
+    global HighV
+    HighV = cv.getTrackbarPos('maxV', 'Video')
+    cv.setTrackbarPos('maxV', 'Video',HighV)
+def lowH(HSV):
+    global LowH
+    LowH = cv.getTrackbarPos('minH', 'Video')
+    cv.setTrackbarPos('minH', 'Video',LowH)
+    #print(LowH)
+def lowS(HSV):
+    global LowS
+    LowS = cv.getTrackbarPos('minS', 'Video')
+    cv.setTrackbarPos('mins', 'Video',LowS)
+    #print(LowS)
+def lowV(HSV):
+    global LowV
+    LowV = cv.getTrackbarPos('minV', 'Video')
+    cv.setTrackbarPos('minV', 'Video',LowV)
+    #print(LowV)
+
+
+MaxHSV = np.array([highH,highS,highV])
+MinHSV = np.array([lowH,lowS,lowV])
+
+cv.createTrackbar('minH', 'Video',0,255,highH)
+cv.createTrackbar('minS', 'Video',0,255,highS)
+cv.createTrackbar('minV', 'Video',0,255,highV)
+cv.createTrackbar('maxH', 'Video',0,255,lowH)
+cv.createTrackbar('maxS', 'Video',0,255,lowS)
+cv.createTrackbar('maxV', 'Video',0,255,lowV)
+
+
+def on_mouse_click(event, x, y, flags, userParams):
+  #  global HighH, HighS, HighV, LowH, LowS, LowV
+
+    if event == cv.EVENT_LBUTTONDOWN:
+        rgb = frame[y, x, [2,1,0]]
+        #print ("red = " ,rgb[0], " green = ", rgb[1], " blue = ", rgb[2])
+        
+        
+while True:
+    #capture each frame
+    _, frame = cap.read()
+    #convert from BGR to HSV
+    hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
+
+    #location of mouse click
+    cv.setMouseCallback('Video', on_mouse_click)
+    
+    #give a range for color in HSV
+    lower_color = np.array([110,50,50])
+    upper_color = np.array([130,255,255])
+
+    #get trackbar position
+    #HighH = cv.getTrackbarPos('maxH','Video')
+    highH(hsv)
+    highS(hsv)
+    highV(hsv)
+    lowH(hsv)
+    lowS(hsv)
+    lowV(hsv)
+
+    #give a range for color in HSV 
+    cv.inRange(hsv,lower_color, upper_color)
+
+    #threshold to pull out specific color
+    mask = cv.inRange(hsv,lower_color, upper_color)
+
+    #bitwise and mask and orig img
+    res = cv.bitwise_and(frame, frame, mask = mask)
+
+   # cv.imshow('mask', mask)
+   # cv.imshow('blue', res)
+    
+    status, img = cap.read()
+    cv.imshow('Video',frame)
+    k = cv.waitKey(5) & 0xFF
+    if k == 27:
+        break 
+cv.destroyAllWindows()
