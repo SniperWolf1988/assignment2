@@ -1,41 +1,86 @@
 import cv2 as cv
 import numpy as np
+
 cap = cv.VideoCapture(0)
+_, frame = cap.read()
 cv.namedWindow("Video")
 
-def nothing(x):
-    pass
+HighH,HighS,HighV,LowH,LowS,LowV = 0,0,0,0,0,0
 
-cv.createTrackbar('red', 'Video',0,255,nothing)
-cv.createTrackbar('green', 'Video',0,255,nothing)
-cv.createTrackbar('blue', 'Video',0,255,nothing)
+HSV = cv.cvtColor(frame,cv.COLOR_BGR2HSV)
+
+def highH(val):
+    global HighH
+    HighH = val
+    print("hh", val)
+
+def highS(val):
+    global HighS
+    HighS = val
+    print("hs", val)
+
+def highV(val):
+    global HighV
+    HighV = val
+    print("hv", val)
+
+def lowH(val):
+    global LowH
+    LowH = val
+    print("lh", val)
+
+def lowS(val):
+    global LowS
+    LowS = val
+    print("ls", val)
+
+def lowV(val):
+    global LowV
+    LowV = val
+    print("lv", val)
+
+cv.createTrackbar('minH', 'Video',0,255,lowH)
+cv.createTrackbar('minS', 'Video',0,255,lowS)
+cv.createTrackbar('minV', 'Video',0,255,lowV)
+cv.createTrackbar('maxH', 'Video',0,255,highH)
+cv.createTrackbar('maxS', 'Video',0,255,highS)
+cv.createTrackbar('maxV', 'Video',0,255,highV)
 
 
-def on_mouse_click(event, x, y, flags, userParams):
-    if event == cv.EVENT_LBUTTONDOWN:
-        rgb = frame[y, x, [2,1,0]]
-        print ("red = " ,rgb[0], " green = ", rgb[1], " blue = ", rgb[2])
-        cv.setTrackbarPos('red','Video',rgb[0])
-        cv.setTrackbarPos('green','Video',rgb[1])
-        cv.setTrackbarPos('blue','Video',rgb[2])
+def on_mouse_click(event, x, y, flags, pic):
+    #print(pic[y,x])
 
-        
+   if event == cv.EVENT_LBUTTONDOWN:
+        #rgb = frame[y, x, [2,1,0]]
+        #print ("red = " ,rgb[0], " green = ", rgb[1], " blue = ", rgb[2])
+        print(pic[y,x])
+#cv.setMouseCallback('Video', on_mouse_click, )       
 while True:
     #capture each frame
     _, frame = cap.read()
     #convert from BGR to HSV
     hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
-
-    # location of mouse click
-    cv.setMouseCallback('Video', on_mouse_click)
-
-    # track bar sliders
-    #r = cv.getTrackbarPos('red','Video')
-    #g = cv.getTrackbarPos('green','Video')
-    #b = cv.getTrackbarPos('blue','Video')
+    cv.setMouseCallback('Video', on_mouse_click, hsv)
+    #location of mouse click
+ 
+    
     #give a range for color in HSV
     lower_color = np.array([110,50,50])
     upper_color = np.array([130,255,255])
+
+    MaxHSV = np.array([HighH, HighS, HighV])
+    MinHSV = np.array([LowH, LowS, LowV])
+    #inRange for HSV
+    gray = cv.inRange(hsv,MinHSV,MaxHSV)
+
+    # erosion
+    kernel = np.ones((5,5),np.uint8)
+    erosion = cv.erode(hsv,kernel,iterations = 1)
+
+    # dilate
+    dilation = cv.dilate(hsv,kernel,iterations = 1)
+    #give a range for color in HSV 
+    cv.inRange(hsv,lower_color, upper_color)
 
     #threshold to pull out specific color
     mask = cv.inRange(hsv,lower_color, upper_color)
@@ -44,10 +89,13 @@ while True:
     res = cv.bitwise_and(frame, frame, mask = mask)
 
    # cv.imshow('mask', mask)
-   # cv.imshow('blue', res)
+    #cv.imshow('blue', res)
     
     status, img = cap.read()
     cv.imshow('Video',frame)
+    cv.imshow('gray', gray)
+    #cv.imshow('dilate',dilation)
+    #cv.imshow('erosion',erosion)
     k = cv.waitKey(5) & 0xFF
     if k == 27:
         break 
